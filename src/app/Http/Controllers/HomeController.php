@@ -14,7 +14,8 @@ use Abraham\TwitterOAuth\TwitterOAuth;
 
 class HomeController extends Controller
 {
-    public function index(Request $request){
+    public function index(Request $request)
+    {
         $users = User::all();
         $user = Auth::user();
         $languages = Language::all();
@@ -31,37 +32,37 @@ class HomeController extends Controller
         //header_week
         $start_date = $user->created_at;
         $diff = $start_date->diff(date("Y-m-d H:i:s"));
-        if($diff->d > 0){
+        if ($diff->d > 0) {
             $header_week = ceil($diff->d / 7);
         }
 
-        foreach($study_hours_posts as $study_hours_post){
+        foreach ($study_hours_posts as $study_hours_post) {
             //Total
             $total_study_hour += $study_hours_post->total_hour;
 
             //Month
-            if(substr($study_hours_post->study_date, 0, 7) == date('Y-m')){
+            if (substr($study_hours_post->study_date, 0, 7) == date('Y-m')) {
                 $month_study_hour += $study_hours_post->total_hour;
             }
 
             //Today
-            if($study_hours_post->study_date == date('Y-m-d')){
+            if ($study_hours_post->study_date == date('Y-m-d')) {
                 $today_study_hour += $study_hours_post->total_hour;
             }
 
             //学習時間
-            if($date == substr($study_hours_post->study_date, 8, 10)){
+            if ($date == substr($study_hours_post->study_date, 8, 10)) {
                 $total_hour += $study_hours_post->total_hour;
-            }else{
+            } else {
                 $date = substr($study_hours_post->study_date, 8, 10);
                 $total_hour = $study_hours_post->total_hour;
             }
 
             $columntime .= "[" . $date . ", " . $total_hour;
 
-            if($date % 2 == 0){
+            if ($date % 2 == 0) {
                 $columntime .= ", '#3ccfff'],";
-            }else{
+            } else {
                 $columntime .= ", '#0f71bc'],";
             }
         }
@@ -78,9 +79,13 @@ class HomeController extends Controller
         ]);
     }
 
-    public function post(Request $request){
+    public function post(Request $request)
+    {
 
         $study_date = $request->date;
+        if (!isset($study_date)) {
+            return '保存失敗';
+        }
         $study_date = str_replace('年', '-', $study_date);
         $study_date = str_replace('月', '-', $study_date);
         $study_date = str_replace('日', '', $study_date);
@@ -94,7 +99,7 @@ class HomeController extends Controller
         $languages = $request->languages;
         $contents = $request->contents;
 
-        foreach($languages as $language){
+        foreach ($languages as $language) {
             $language_post = LanguagePost::create([
                 'study_hours_post_id' => $study_hours_post->id,
                 'language_id' => $language,
@@ -102,7 +107,7 @@ class HomeController extends Controller
             ]);
         }
 
-        foreach($contents as $content){
+        foreach ($contents as $content) {
             $content_post = ContentPost::create([
                 'study_hours_post_id' => $study_hours_post->id,
                 'content_id' => $content,
@@ -113,7 +118,7 @@ class HomeController extends Controller
         $twitter_post = $request->twitter;
         $twitter_text = $request->twittertext;
 
-        if(isset($twitter_post) && isset($twitter_text)){
+        if (isset($twitter_post) && isset($twitter_text)) {
             $twitter = new TwitterOAuth(
                 env('TWITTER_CLIENT_ID'),
                 env('TWITTER_CLIENT_ID_ACCESS_TOKEN'),
